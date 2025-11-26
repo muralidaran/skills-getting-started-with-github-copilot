@@ -46,7 +46,49 @@ document.addEventListener("DOMContentLoaded", () => {
           details.participants.forEach((p) => {
             const li = document.createElement("li");
             li.className = "participant-item";
-            li.textContent = p;
+
+            // email text
+            const span = document.createElement("span");
+            span.className = "participant-email";
+            span.textContent = p;
+
+            // remove button
+            const removeBtn = document.createElement("button");
+            removeBtn.className = "participant-remove";
+            removeBtn.setAttribute("aria-label", `Remove ${p} from ${name}`);
+            removeBtn.textContent = "×";
+
+            // store data attributes
+            removeBtn.dataset.activity = name;
+            removeBtn.dataset.email = p;
+
+            // click handler to unregister participant
+            removeBtn.addEventListener("click", async (e) => {
+              e.stopPropagation();
+              const activityName = removeBtn.dataset.activity;
+              const email = removeBtn.dataset.email;
+
+              try {
+                const resp = await fetch(
+                  `/activities/${encodeURIComponent(activityName)}/participants?email=${encodeURIComponent(email)}`,
+                  { method: "DELETE" }
+                );
+
+                const result = await resp.json();
+
+                if (resp.ok) {
+                  // remove element from DOM
+                  li.remove();
+                } else {
+                  console.error("Failed to remove participant:", result);
+                }
+              } catch (err) {
+                console.error("Error removing participant:", err);
+              }
+            });
+
+            li.appendChild(span);
+            li.appendChild(removeBtn);
             ul.appendChild(li);
           });
 
